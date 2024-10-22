@@ -1,2 +1,3 @@
-logs/*
+pymol_assistant/logs/
 poetry.lock
+pymol_assistant/__pycache__/
