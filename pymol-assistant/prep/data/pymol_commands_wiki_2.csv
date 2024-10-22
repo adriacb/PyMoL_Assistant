@@ -1,0 +1,322 @@
+name,description,arguments,example,usage
+View,"view makes it possible to save and restore viewpoints on a given scene within a single session.
+
+Contents
+
+1 USAGE
+2 PYMOL API
+3 FUNCTION KEY PRESETS
+4 EXAMPLES
+5 SEE ALSO
+
+
+",,"view 0,store
+view 0
+
+SEE ALSO
+Scene, Set View, Get View
+
+
+
+
+
+Retrieved from ""https://pymolwiki.org/index.php?title=View&oldid=11633""
+Categories: Pages using deprecated source tagsCommandsView Module
+
+","cmd.view(string key,string action)
+
+FUNCTION KEY PRESETS
+Views F1 through F12 are automatically bound to function keys provided that ""set_key"" has not been used to redefine the behaviour of the respective key, and that a ""scene"" has not been defined for that key.
+
+view key[,action]
+view *
+
+key can be any string
+action should be 'store' or 'recall' (default: 'recall')
+
+"
+Viewport,"viewport changes the size of the viewing port--the visible openGL window (and thus the size of all png files subsequently output).
+No API command can reliably retrieve the viewport dimensions under all circumstances. However, it is possible to obtain the dimensions using a third party image viewer like Gimp or OS X Preview:
+
+Save the current view as a png file (""png imagename.png"").
+Determine the image dimensions using a viewer program.
+These dimensions can be applied directly using the viewport command or the API.
+
+",,,"cmd.viewport(int width, int height)
+
+
+
+
+
+Retrieved from ""https://pymolwiki.org/index.php?title=Viewport&oldid=9467""
+Categories: Pages using deprecated source tagsCommands
+
+viewport width, height
+
+"
+Volume," Volume visualization of electron density for PDB 1oky
+ Volume panel for the 1oky volume example. It has the iso-levels on the x-axis and the opacity (1.0 - transparency) on the y-axis.
+
+Volume creates a new volume object from a map object.  The data (3D scalar fields) are shown as a true 3D object using coloring and transparencies defined by the user to illustrate the data values.
+This technique supports single and multiple isosurfaces.
+
+Contents
+
+1 Usage
+2 Arguments
+3 Example
+4 Screencasts
+5 Changes with PyMOL Version
+6 Ray Tracing
+7 Known Limitations
+8 See Also
+
+
+","name = the name for the new volume object.
+map = the name of the map object to use for computing the volume.
+ramp = str: named color ramp {default: }
+selection = an atom selection about which to display the mesh with an additional ""buffer"" (if provided).
+carve = a radius about each atom in the selection for which to include density. If ""carve"" is not provided, then the whole brick is displayed.
+Example
+fetch 1oky, type=2fofc, async=0
+volume 1okyVol, 1oky_2fofc
+
+Screencasts
+Silent demo movie showing the basics of loading and using a volume in PyMOL.  There are more capabilities, but this is the basic functionality.
+Changes with PyMOL Version
+1.4.0: first version with volume support
+1.7.2:
+pre-integrated volume rendering (volume_mode=1) as Incentive-PyMOL-only feature.
+scripting support with custom color ramp (volume_color, volume_ramp_new)
+improved volume panel, panel can be opened from the object menu (""C > panel"")
+lots of bugs fixed
+Ray Tracing
+There is no actual ray tracing support. The volume rendering is implemented exclusively with OpenGL shaders. The recommended way to render a high resolution image is to use the draw command. Example:
+
+# render high resolution image on screen
+draw 4000, 3000, antialias=2
+png highres.png
+
+Ray trace specific features like shadows or outlines (ray_trace_mode) are not available with this approach. If such features are needed, the ray_volume setting activates a hybrid solution, which blends the OpenGL rendered volume with the ray traced non-volume objects. Image sizes other than the current window size are not possible.
+
+# compose on-screen volume with ray traced image
+set ray_volume
+ray
+png composed.png
+
+Neither of these two solutions work with headless (batch) mode.
+
+Known Limitations
+No real ray-tracing support yet
+Multiple volume objects don't blend properly
+See Also
+http://pymol.org/volume
+http://pymol.org/d/media:volumevisualization
+volume_color
+volume_ramp_new
+map_new
+isomesh
+isosurface
+
+
+
+
+Retrieved from ""https://pymolwiki.org/index.php?title=Volume&oldid=12536""
+Categories: CommandsVolumeRepresentations
+
+",,"volume name, map [, ramp [, selection [, buffer [, state [, carve ]]]]]
+
+"
+Volume color,"volume_color set or get the volume colors.
+
+Contents
+
+1 Usage
+2 Arguments
+3 Examples
+4 See Also
+
+
+","name = str: volume object name
+ramp = str, list or empty: named ramp, space delimited string or list with (x, color, alpha, ...) or (x, r, g, b, alpha, ...) values. If empty, get the current volume colors.
+","Setting volume colors with one line:
+
+fetch 1a00, map, type=2fofc, async=0
+volume vol, map
+volume_color vol, .8 cyan 0. 1. blue .3 2. yellow .3 
+
+Using a named color ramp:
+
+volume_ramp_new cyanblueyellow, \
+    .8 cyan 0. \
+    1. blue .3 \
+    2. yellow .3
+volume_color vol, cyanblueyellow
+
+Getting the current volume ramp:
+
+PyMOL>volume_color vol
+### cut below here and paste into script ###
+cmd.volume_ramp_new('ramp399', [\
+     0.80, 0.00, 1.00, 1.00, 0.00, \
+     1.00, 0.00, 0.00, 1.00, 0.30, \
+     2.00, 1.00, 1.00, 0.00, 0.30, \
+   ])
+### cut above here and paste into script ###
+
+See Also
+volume
+
+
+
+
+Retrieved from ""https://pymolwiki.org/index.php?title=Volume_color&oldid=12729""
+Categories: CommandsVolume
+
+","volume_color name [, ramp ]
+
+"
+Window,"window controls the visibility of PyMOL's output window
+Some actions (maximize, focus, defocus) are not consistent across operating systems.
+Non-functional in PyMOL 2.0, will be available again in 2.1
+
+Contents
+
+1 Usage
+2 Actions
+3 Example
+4 See Also
+
+
+",,,"window [ action [, ... ]]
+
+Actions
+Hide the window (Warning: might make the window inaccessible. Intended for programmed automation):
+
+window hide
+
+Show the window (reverse of hide):
+
+window show
+
+Place the window at x, y screen coordinates:
+
+window position, x, y
+
+Resize the window:
+
+window size, width, height
+
+Place and resize in a single operation:
+
+window box, x, y, width, height
+
+If any window corner is not on the visible screen, move the window and if necessary, resize (shrink) to screen dimensions:
+
+window fit
+
+Maximize the window:
+
+window maximize
+
+Give the OpenGL window focus:
+
+window focus
+
+Example
+Place in upper left corner and resize to 1000x500
+
+window box, 0, 0, 1000, 500
+
+See Also
+full_screen
+viewport
+-W, -H, -X, -Y Command Line Options
+
+
+
+
+Retrieved from ""https://pymolwiki.org/index.php?title=Window&oldid=12726""
+Category: Commands
+
+"
+Wizard,"wizard launches one of the built-in wizards.  There are special Python scripts which work with PyMOL in order to obtain direct user interaction and easily peform complicated tasks.
+
+",,,"cmd.wizard(string name)
+
+EXAMPLE
+wizard distance  # launches the distance measurement wizard 
+
+# set a message
+cmd.wizard(""message"", ""Hello, I'm a message."")
+
+# dimiss the message
+cmd.wizard()
+
+
+
+
+
+Retrieved from ""https://pymolwiki.org/index.php?title=Wizard&oldid=7546""
+Categories: Pages using deprecated source tagsCommands
+
+wizard name
+
+"
+Zoom,"zoom scales and translates the window and the origin to cover the atom selection.
+
+Contents
+
+1 USAGE
+2 EXAMPLES
+3 PYMOL API
+4 NOTES
+5 SEE ALSO
+
+
+state = 0 (default) use all coordinate states
+state = -1 use only coordinates for the current state
+state > 0  use coordinates for a specific state
+
+complete = 0 or 1:
+
+Normally the zoom command tries to guess an optimal zoom level for visualization, balancing closeness against occasional clipping of atoms out of the field of view.  You can change this behavior by setting the complete option to 1, which will guarantee that the atom positions for the entire selection will fit in the field of an orthoscopic view.  To absolutely prevent clipping, you may also need to add a buffer (typically 2 A) to account for the perspective transformation and for graphical representations which extend beyond the atom coordinates.
+
+SEE ALSO
+Origin
+Orient
+Center
+
+
+
+
+Retrieved from ""https://pymolwiki.org/index.php?title=Zoom&oldid=7545""
+Categories: Pages using deprecated source tagsCommandsStatesView Module
+
+",,"# auto zoom depending on what's loaded in PyMOL
+zoom
+
+#
+zoom complete=1
+
+# zoom on just chain A
+zoom (chain A)
+
+# zoom on residue 142
+zoom 142/
+
+# zoom consistenly 20 Ang from each object at the center
+center prot1
+zoom center, 20
+
+# prot1 and prot2 will have the same exact zoom factor
+center prot2
+zoom center, 20
+
+"," 
+cmd.zoom( string selection, float buffer=0.0,
+          int state=0, int complete=0 )
+
+zoom [ selection [,buffer [, state [, complete ]]]]
+
+"

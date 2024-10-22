@@ -1,0 +1,101 @@
+name,description,arguments,example,usage
+"""color"" changes the color of objects or atoms.","""color"" changes the color of objects or atoms.
+color_deep
+,
+set_color
+,
+recolorWhen using color ramps, the ramp can be used as a color.","color = string: color name or number
+
+    selection = string: selection-expression or name-pattern
+    corresponding to the atoms or objects to be colored
+    {default: (all)}.
+","color cyan
+    color yellow, chain A
+","cmd.color(string color, string selection, int quiet)
+"
+"""cycle_valence"" cycles the valence on the currently selected bond.","""cycle_valence"" cycles the valence on the currently selected bond.
+remove_picked
+,
+attach
+,
+replace
+,
+fuse
+,
+h_fillIf the h_fill flag is true, hydrogens will be added or removed to
+    satisfy valence requirements.
+
+    This function is usually connected to the DELETE key and ""CTRL-W"".","h_fill = 0 or 1: updated hydrogens too? {default: 1 (yes)}
+","cycle_valence
+","cmd.cycle_valence(int h_fill)
+"
+"""frame"" sets the viewer to the indicated movie frame.","""frame"" sets the viewer to the indicated movie frame.
+count_statesFrame numbers are 1-based.","frame = integer: frame number to display
+","frame 10
+","cmd.frame( int frame_number )
+"
+"""get"" prints out the current value of a setting.","""get"" prints out the current value of a setting.
+set
+,
+set_bond
+,
+get_bond""get"" currently only works with global, per-object, and per-state
+    settings.  Atom level settings get be queried with ""iterate"" (e.g.
+    iterate all, print s.line_width)","name = string: setting name
+
+    selection = string: object name (selections not yet supported)
+
+    state = integer: state number
+","get line_width
+","cmd.get(string name, string object, int state, int quiet)
+"
+"""get_bond"" gets per-bond settings for all bonds which exist","""get_bond"" gets per-bond settings for all bonds which exist
+    between two selections of atoms.
+The following per-bond settings are currently implemented.  Others
+    may seem to be recognized but will currently have no effect when
+    set at the per-bond level.
+    
+    * valence
+    * line_width
+    * line_color
+    * stick_radius
+    * stick_color
+    * stick_transparency","name = string: name of the setting
+
+    selection1 = string: first set of atoms
+
+    selection2 = string: seconds set of atoms {default: (selection1)}
+","get_bond stick_transparency, */n+c+ca+o
+","cmd.get_bond ( string name,
+                   string selection1,
+                   string selection2,
+                   int state, int updates, quiet=1)
+"
+"""set_bond"" changes per-bond settings for all bonds which exist","""set_bond"" changes per-bond settings for all bonds which exist
+    between two selections of atoms.
+The following per-bond settings are currently implemented.  Others
+    may seem to be recognized but will currently have no effect when
+    set at the per-bond level.
+    
+    * valence
+    * line_width
+    * line_color
+    * stick_radius
+    * stick_color
+    * stick_transparency
+
+    Note that if you attempt to use the ""set"" command with a per-bond
+    setting over a selection of atoms, the setting change will appear
+    to take, but no change will be observed.","name = string: name of the setting
+
+    value = string: new value to use
+
+    selection1 = string: first set of atoms
+
+    selection2 = string: seconds set of atoms {default: (selection1)}
+","set_bond stick_transparency, 0.7, */n+c+ca+o
+","cmd.set_bond ( string name, string value,
+                   string selection1,
+                   string selection2,
+                   int state, int updates, log=0, quiet=1)
+"
