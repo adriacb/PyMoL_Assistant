@@ -1,6 +1,12 @@
+# directories
 pymol_assistant/logs/
-poetry.lock
 pymol_assistant/__pycache__/
+
+# poetry
+poetry.lock
+
+# keys
+.env
 
 # temporary files
 *.cif

@@ -11,6 +11,14 @@ fastapi = {extras = ["standard"], version = "^0.115.3"}
 requests = "^2.32.3"
 beautifulsoup4 = "^4.12.3"
 pandas = "^2.2.3"
+qdrant-client = "^1.12.0"
+tqdm = "^4.66.5"
+langchain = "^0.3.4"
+langchain-community = "^0.3.3"
+openai = "^1.52.1"
+langchain-qdrant = "^0.1.4"
+langchain-openai = "^0.2.3"
+langchain-cohere = "^0.3.1"
 
 
 [build-system]

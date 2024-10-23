@@ -29,4 +29,25 @@ async def submit_question(question: QuestionModel) -> dict:
     else:
         return {"message": f"Received question: {question.question}"}
     
-    # question("get 1a8o")
+    # question("Get the structure 1a8o")
+
+
+@app.post("/question")
+async def submit_question2(question: QuestionModel) -> dict:
+    """
+    Asyncronously, get the question from the client and return the response.
+
+    Args:
+        question (QuestionModel): The question from the client.
+    
+    Returns:
+        json: The response to the question.
+    """
+        # Process the received question
+    logger.info(f"Received question: {question.question}")
+    
+    # The question is transformed to HumanMessage
+    #prompt = HumanMessage(content=question.question)
+
+    # The 
+    
