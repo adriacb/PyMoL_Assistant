@@ -4,6 +4,10 @@ qdrant:
   vector_config:
     size: 768
     distance: cosine
+  vector_name: content
+  content_payload_key: content
+embeddings:
+  model: text-embedding-3-small
 data:
   to_process: ../../prep/data/pymol-docs.csv          # need to be processed
   parquet_file: ../../prep/data/pymol-docs.parquet    # processed data (embeddings)

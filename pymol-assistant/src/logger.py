@@ -7,7 +7,9 @@ from logging.handlers import RotatingFileHandler
 import os
 
 class Logger:
-    def __init__(self, log_file: str, log_level: int = logging.DEBUG, max_bytes: int = 1_000_000, backup_count: int = 3):
+    def __init__(self, log_file: str, 
+                 log_level: int = logging.DEBUG,
+                 max_bytes: int = 1_000_000, backup_count: int = 3):
         """
         Initialize the logger.
 
@@ -31,13 +33,8 @@ class Logger:
         file_handler = RotatingFileHandler(log_file, maxBytes=max_bytes, backupCount=backup_count)
         file_handler.setFormatter(formatter)
 
-        # Console handler to print logs to console
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-
-        # Add handlers to the logger
+        # Add only the file handler to the logger
         self.logger.addHandler(file_handler)
-        self.logger.addHandler(console_handler)
 
         # Prevent duplicate log entries
         self.logger.propagate = False
