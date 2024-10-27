@@ -1,2 +1,0 @@
-2024-10-22 16:18:51,460 - INFO - Sending question: hello world
-2024-10-22 16:18:51,460 - INFO - Server response: {'message': 'Received question: hello world'}

@@ -1,6 +1,6 @@
 # directories
-pymol_assistant/logs/
-pymol_assistant/__pycache__/
+pymol_assistant/src/logs/
+pymol_assistant/src/__pycache__/
 
 # poetry
 poetry.lock

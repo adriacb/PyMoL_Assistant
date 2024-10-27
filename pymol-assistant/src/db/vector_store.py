@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), os.pardir, ".env"))
 
 from qdrant_client import QdrantClient
+from langchain_qdrant import Qdrant
 from qdrant_client.http import models
 
-from langchain.vectorstores import Qdrant
 
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -54,21 +54,22 @@ def load_vector_store(config:dict, embeddings:Any) -> Qdrant:
     try:
         QDRANT_URL = config.get('qdrant').get('url')
         QDRANT_COLLECTION_NAME = config.get('qdrant').get('collection_name')
+        print("QDRANT_URL: ", QDRANT_URL)
+        print("QDRANT_COLLECTION_NAME: ", QDRANT_COLLECTION_NAME)
         
-        # This initializes the Qdrant client using the QDRANT_URL and QDRANT_API_KEY
-        qdrant_client = QdrantClient(
+        # Qdrant instance
+        qdrant = Qdrant.from_existing_collection(
             url=QDRANT_URL,
-            api_key=QDRANT_API_KEY
-        )
+            embedding=embeddings,
+            collection_name=QDRANT_COLLECTION_NAME,
+            vector_name=config.get('qdrant').get('vector_name'), 
+            content_payload_key=config.get('qdrant').get('content_payload_key'),
+            distance_strategy=config.get('qdrant').get('vector_config').get('distance').upper()
+    )
+
     except Exception as e:
         # If the Qdrant client fails to initialize, create a new one with an in-memory database
         print(str(e))
-        qdrant_client = QdrantClient(":memory:")
-
-    vector_store = Qdrant(
-        client=qdrant_client,
-        collection_name=QDRANT_COLLECTION_NAME,
-        embeddings=embeddings,
-    )
-
-    return vector_store
+        raise NotImplementedError("Failed to initialize Qdrant client.")
+    
+    return qdrant

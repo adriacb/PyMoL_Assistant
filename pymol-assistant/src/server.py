@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from src.logger import Logger
 from src.models import QuestionModel
 from src.prompts import *
-from src.db.vector_store import load_config, OPENAI_API_KEY, QDRANT_API_KEY
+from src.db.vector_store import load_config, load_vector_store, OPENAI_API_KEY, QDRANT_API_KEY
 
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import Qdrant
@@ -21,28 +21,24 @@ config = load_config()
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 os.environ["QDRANT_API_KEY"] = QDRANT_API_KEY
 EMBEDDING_MODEL = config.get('embeddings').get('model')
-QDRANT_URL = config.get('qdrant').get('url')
-QDRANT_COLLECTION_NAME = config.get('qdrant').get('collection_name')
 
+# TODO: config logger output directory in the config file
 logger = Logger(os.path.join(os.path.dirname(__file__), "logs/pymol-assistant-server.log"))
 # FastAPI app instance
 app = FastAPI()
+
+# TODO: config llm model in the config file
 # OpenAI chat instance
 chat = ChatOpenAI(
     model='gpt-4o-mini'
 )
+
+# TODO: config the embedding model in the config file
 # Embeddings instance
 embed_model = OpenAIEmbeddings(model=EMBEDDING_MODEL)
 
 # Qdrant instance
-qdrant = Qdrant.from_existing_collection(
-    url=QDRANT_URL,
-    embedding=embed_model,
-    collection_name=QDRANT_COLLECTION_NAME,
-    vector_name=config.get('qdrant').get('vector_name'), 
-    content_payload_key=config.get('qdrant').get('content_payload_key'),
-    distance_strategy=config.get('qdrant').get('vector_config').get('distance').upper()
-)
+qdrant = load_vector_store(config=config, embeddings=embed_model)
 
 # The history of the conversation
 history: list = [
@@ -50,7 +46,7 @@ history: list = [
 ]
 
 
-async def gennerate_query_to_function_prompt(
+def gennerate_query_to_function_prompt(
         query: str,
         qdrant: Qdrant, top_k:int=5) -> HumanMessage:
     """
@@ -97,7 +93,7 @@ async def submit_question(question: QuestionModel) -> dict:
     logger.info(f"Received question: {question.question}")
     
     # The question is transformed to HumanMessage
-    response_given_query = await gennerate_query_to_function_prompt(
+    response_given_query = gennerate_query_to_function_prompt(
         query=question.question,
         qdrant=qdrant,
         top_k=5
@@ -107,36 +103,9 @@ async def submit_question(question: QuestionModel) -> dict:
     history.append(response_given_query)
 
     # result 
-    result = chat.invoke(history)
+    result = await chat.invoke(history)
 
     # The result is added to the history
     history.append(result)
 
     return {"message": result.content}
-
-
-
-
-
-# @app.post("/question")
-# async def submit_question(question: QuestionModel) -> dict:
-#     """
-#     Asyncronously, get the question from the client and return the response.
-
-#     Args:
-#         question (QuestionModel): The question from the client.
-    
-#     Returns:
-#         json: The response to the question.
-#     """
-#         # Process the received question
-#     logger.info(f"Received question: {question.question}")
-#     if question.question == "Get the structure 1a8o":
-#         return {"action": "cmd.fetch('1a8o')"}
-#     elif question.question == "show surface":
-#         return {"action": "cmd.show('surface')"}
-#     # Return the received question
-#     else:
-#         return {"message": f"Received question: {question.question}"}
-    
-#     # question("Get the structure 1a8o")
