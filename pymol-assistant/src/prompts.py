@@ -27,4 +27,5 @@ Please format your response as a json format (```json...```) with the following 
 - `missing_requirements`: an explanation of what is missing in case the command cannot be used
 - `usage`: string with the usage of the function and parameters.
 - `references`: a reference to the PyMoL documentation or any other source that supports your answer
+- `answer`: a friendly answer to the user's query providing the function and the references (if any) 
 """

@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -13,14 +14,17 @@ from langchain.schema import (
     HumanMessage,     # Humanessage is a message from the human
 )
 
+from langchain_core.runnables import RunnableConfig
+
 # TODO: config logger output directory in the config file
 logger = Logger(os.path.join(os.path.dirname(__file__), "logs/pymol-assistant-server.log"))
 # FastAPI app instance
 app = FastAPI()
 
 
+########### Routes ###########
 @app.post("/question")
-async def submit_question(question: QuestionModel) -> dict:
+async def submit_question(question: QuestionModel):
     """
     Asyncronously, get the question from the client and return the response.
 
@@ -30,18 +34,27 @@ async def submit_question(question: QuestionModel) -> dict:
     Returns:
         json: The response to the question.
     """
-        # Process the received question
+    config = RunnableConfig(configurable={
+        "session_id": str(session_id),
+        "thread_id": "Thread-1"
+        })
+
+    if "configurable" not in config or "session_id" not in config["configurable"]:
+        raise ValueError(
+            "Make sure that the config includes the following information: {'configurable': {'session_id': 'some_value'}}"
+        )
+
     logger.info(f"Received question: {question.question}")
 
-    input = {"messages": [
-        HumanMessage(content=question.question)
-        ]}
-    config = {"configurable": {"thread_id": "thread-1"}} # Required for the graph to run with the memory saver
+    # the input to the graph is the chat history and the new question
+    input = {"messages": [HumanMessage(content=question.question)]}
+
+    # Required for the graph to run with the memory saver
     output = graph.invoke(
         input=input,
         config=config
         )["messages"][-1].content
-    
+
     return {"message": output}
 
 @app.get("/graph")
