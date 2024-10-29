@@ -32,7 +32,7 @@ poetry install
 ``` 
 
 ### How to Use It
-For detailed usage instructions, please refer to the [detailed usage guide](pymol-assistant/src/README.md).
+For detailed usage instructions, please refer to the [detailed usage guide](pymol-assistant/README.md).
 
 
 ### Project Structure
