@@ -10,6 +10,7 @@ PyMOL Assistant is a Python application designed to simplify interactions with P
 ## Installation
 
 ### Prerequisites
+- Anaconda
 - Python 3.8+
 - PyMoL (open-source)
 - [Poetry](https://python-poetry.org/) for dependency management
@@ -31,20 +32,20 @@ poetry install
 ``` 
 
 ### How to Use It
-For detailed usage instructions, please refer to the [detailed usage guide](src/README.md).
+For detailed usage instructions, please refer to the [detailed usage guide](pymol-assistant/src/README.md).
 
 
 ### Project Structure
-    ```
-    pymol-assistant
-    ├── dist                   # Distribution files
-    ├── prep                   # Preparation scripts
-    ├── src                    # Main application code
-    ├── tests                  # Unit and integration tests
-    ├── poetry.lock            # Dependency lock file
-    ├── pyproject.toml         # Project configuration
-    └── README.md              # Project documentation
-    ``` 
+```
+pymol-assistant
+├── dist                   # Distribution files
+├── prep                   # Preparation scripts
+├── src                    # Main application code
+├── tests                  # Unit and integration tests
+├── poetry.lock            # Dependency lock file
+├── pyproject.toml         # Project configuration
+└── README.md              # Project documentation
+``` 
 
 ### License
 This project is licensed under the MIT License. See the LICENSE file for details.
