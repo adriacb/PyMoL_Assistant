@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from src.dag.tools import tool_node
 from src.dag.nodes import call_model, should_continue, call_summary_model
@@ -26,14 +27,13 @@ workflow.add_edge(START, "agent")
 workflow.add_conditional_edges(
     "agent", 
     should_continue, 
-    ["tools", "summary_agent", END]
+    ["tools", END]
     )
 
 # We now add a normal edge from `tools` to `summary_agent`.
 # This means that after `tools` is called, `summary_agent` node is called next.
 workflow.add_edge("tools", 'summary_agent')
-#workflow.add_edge("summary_agent", END)
-
+workflow.add_edge("summary_agent", END)
 
 # Initialize memory to persist state between graph runs
 checkpointer = MemorySaver()

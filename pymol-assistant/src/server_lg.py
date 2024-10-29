@@ -13,7 +13,6 @@ from src.dag.workflow import graph
 from langchain.schema import (
     HumanMessage,     # Humanessage is a message from the human
 )
-
 from langchain_core.runnables import RunnableConfig
 
 # TODO: config logger output directory in the config file
@@ -35,13 +34,13 @@ async def submit_question(question: QuestionModel):
         json: The response to the question.
     """
     config = RunnableConfig(configurable={
-        "session_id": str(session_id),
-        "thread_id": "Thread-1"
+        "thread_id": "Thread-1",
+        "session_id": str(uuid.uuid4())
         })
 
-    if "configurable" not in config or "session_id" not in config["configurable"]:
+    if "configurable" not in config or "thread_id" not in config["configurable"]:
         raise ValueError(
-            "Make sure that the config includes the following information: {'configurable': {'session_id': 'some_value'}}"
+            "Make sure that the config includes the following information: {'configurable': {'thread_id': 'some_value'}}"
         )
 
     logger.info(f"Received question: {question.question}")
