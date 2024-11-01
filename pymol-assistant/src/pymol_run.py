@@ -11,10 +11,10 @@ from src.logger import Logger
 
 # Initialize the logger to the same directory as the server
 logger2 = Logger(
-    os.path.join(os.path.dirname(__file__), "logs/pymol-assistant-app.log"),
+    os.path.join(os.path.dirname(__file__), "logs/pymol-assistant-server-app.log"),
     )
 
-def extend(funct, name:str=None):
+def extend(funct: callable, name: str = None):
     if name is None:
         name = funct.__name__
     print(f"Function name: {name}")
@@ -40,6 +40,7 @@ def parse_response(response: str) -> dict:
         
         logger2.info(f"Parsed response: {parsed_response}")
         return parsed_response
+    
     except json.JSONDecodeError as e:
         logger2.error(f"Failed to parse response with JSON: {e}")
         return None
@@ -53,13 +54,14 @@ def question(input: str):
         
         if response.status_code == 200:
             logger2.info(f"Server response: {response.json()}")
-            # Parse the response
-            response = parse_response(response.json()["message"])
-            print(response['usage'])
 
+            # Parse the response
+            response = parse_response(response.json()["final_response"])
+            
             if response:
                 #logger2.info(f"Response: {response['usage']}, type: {type(response['usage'])}")
-                
+                print(response['answer'])
+                print(response['references'])                
                 try:
                     eval(response['usage'])
                 except Exception as e:

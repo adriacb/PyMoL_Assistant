@@ -11,9 +11,13 @@ from qdrant_client.http import models
 
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+os.environ["ANTHROPIC_API_KEY"] = ANTHROPIC_API_KEY
+os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+os.environ["QDRANT_API_KEY"] = QDRANT_API_KEY
 print("Qdrant API Key: ", QDRANT_API_KEY[:5])
 print("OpenAI API Key: ", OPENAI_API_KEY[:5])
+print("Anthropic API Key: ", ANTHROPIC_API_KEY[:5])
 
 def load_config(path: str = os.path.join(os.path.dirname(__file__), "config.yaml")) -> dict:
     """

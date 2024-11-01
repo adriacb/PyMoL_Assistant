@@ -1,85 +1,27 @@
 import os
+import uuid
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 
 from src.logger import Logger
 from src.models import QuestionModel
 from src.prompts import *
-from src.db.vector_store import load_config, load_vector_store, OPENAI_API_KEY, QDRANT_API_KEY
+from src.dag.workflow import graph
 
-from langchain_openai import ChatOpenAI
-from langchain_qdrant import Qdrant
-from langchain_openai import OpenAIEmbeddings
-from langchain.schema import (
-    SystemMessage,    # Generic system message
-    HumanMessage,     # HumanMessage is a message from the human
-    AIMessage,        # AIMessage is a message from the AI
-)
-
-# Load the config file
-config = load_config()
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
-os.environ["QDRANT_API_KEY"] = QDRANT_API_KEY
-EMBEDDING_MODEL = config.get('embeddings').get('model')
+from langchain.schema import HumanMessage
+from langchain_core.runnables import RunnableConfig
 
 # TODO: config logger output directory in the config file
 logger = Logger(os.path.join(os.path.dirname(__file__), "logs/pymol-assistant-server.log"))
 # FastAPI app instance
 app = FastAPI()
 
-# TODO: config llm model in the config file
-# OpenAI chat instance
-chat = ChatOpenAI(
-    model='gpt-4o-mini'
-)
+session_id = str(uuid.uuid4())
 
-# TODO: config the embedding model in the config file
-# Embeddings instance
-embed_model = OpenAIEmbeddings(model=EMBEDDING_MODEL)
-
-# Qdrant instance
-qdrant = load_vector_store(config=config, embeddings=embed_model)
-
-# The history of the conversation
-history: list = [
-    SystemMessage(content=SYSTEM_MESSAGE_PROMPT),
-]
-
-
-def gennerate_query_to_function_prompt(
-        query: str,
-        qdrant: Qdrant, top_k:int=5) -> HumanMessage:
-    """
-    Generate a prompt for the user to provide a function and parameters for a given query.
-
-    Args:
-        query (str): The query to generate the prompt for.
-        qdrant (Qdrant): The Qdrant instance.
-        top_k (int): The number of top results to return.
-
-    Returns:
-        HumanMessage: The generated prompt.
-    """
-    # Get the top k results for the query
-    results = qdrant.similarity_search(query=query, k=top_k)
-
-    # the context will be the content of each document
-    context = ""
-
-    for i, result in enumerate(results):
-        context += f"{i+1}. Document:\n{result.page_content}\n\n"
-
-    prompt = HumanMessage(content=LLM_RAG_PROMPT.format(
-        query=query,
-        context=context
-    ))
-
-    return prompt
-
-
-
+########### Routes ###########
 @app.post("/question")
-async def submit_question(question: QuestionModel) -> dict:
+async def submit_question(question: QuestionModel, session_id: str = session_id):
     """
     Asyncronously, get the question from the client and return the response.
 
@@ -89,23 +31,56 @@ async def submit_question(question: QuestionModel) -> dict:
     Returns:
         json: The response to the question.
     """
-        # Process the received question
-    logger.info(f"Received question: {question.question}")
+
+    # Create a new session id if not provided
+    config = RunnableConfig(configurable={
+        "thread_id": "Thread-1",
+        "session_id": session_id,
+        "recursion_limit": 10,
+        "llm": "gpt-4o-mini"
+        })
     
-    # The question is transformed to HumanMessage
-    response_given_query = gennerate_query_to_function_prompt(
-        query=question.question,
-        qdrant=qdrant,
-        top_k=5
-    )
+    if "configurable" not in config or "thread_id" not in config["configurable"]:
+        raise ValueError(
+            "Make sure that the config includes the following information: {'configurable': {'thread_id': 'some_value'}}"
+        )
 
-    # The prompt is added to the history
-    history.append(response_given_query)
+    logger.info(f"Received question: {question.question}")
 
-    # result 
-    result = await chat.invoke(history)
+    # the input to the graph is the chat history and the new question
+    input = {
+        "count": 0,
+        "messages": [HumanMessage(content=question.question)]
+        }
 
-    # The result is added to the history
-    history.append(result)
+    # Required for the graph to run with the memory saver
+    output = await graph.ainvoke(
+        input=input,
+        config=config,
+        debug=True
+        )
+    
+    # Whether it comes directly form the Agent:
+    if output["messages"][-1].content:
+        return {"final_response": output["messages"][-1].content}
+    else:
 
-    return {"message": result.content}
+        return {
+            "final_response": 
+            output["messages"][-1].additional_kwargs["tool_calls"][0]["function"]["arguments"]
+                }
+
+
+@app.get("/graph")
+def get_graph_image():
+    # Path to the image file
+    image_path = "dag/images/workflow.png"
+    image_path = os.path.join(os.path.dirname(__file__), image_path)
+
+    # Check if the file exists
+    if not os.path.exists(image_path):
+        logger.error(f"Image not found: {image_path}")
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    # Serve the image
+    return FileResponse(image_path, media_type="image/png")

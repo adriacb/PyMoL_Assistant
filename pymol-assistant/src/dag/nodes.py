@@ -1,117 +1,105 @@
-from src.dag.llm import model
+import json
 from src.prompts import *
+from src.models import *
+from src.dag.tools import *
+from src.dag.states import *
+from src.dag.llm import model
 
 from typing import Literal
-from langgraph.graph import MessagesState, END
-from langchain_core.messages import BaseMessage
-from langchain.schema import (
-    SystemMessage,    # Generic system message
-    HumanMessage,     # HumanMessage is a message from the human
-    AIMessage,        # AIMessage is a message from the AI
+from langchain_core.messages import (
+    BaseMessage, 
+    AIMessage, 
+    ToolMessage,
+    SystemMessage,    
 )
-from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables import RunnableLambda
 
-########### Short-term memory for the chat history ###########
-# https://python.langchain.com/docs/versions/migrating_memory/chat_history/
-chats_by_session_id: dict[str, InMemoryChatMessageHistory] = {}
+index = -2 # The index of the last message in the state (excluding the ToolMessage)
 
-def get_chat_history(session_id: str) -> InMemoryChatMessageHistory:
-    chat_history = chats_by_session_id.get(session_id)
-    if chat_history is None:
-        chat_history = InMemoryChatMessageHistory()
-        chats_by_session_id[session_id] = chat_history
-    return chat_history
+map_str_to_tool = {
+    "rag_search_pymol_docs": rag_search_pymol_docs,
+    "FinalResponse": FinalResponse
+    }
 
+def _invoke_tool(tool_call):
+
+    tool = map_str_to_tool[tool_call["name"]]
+    return ToolMessage(
+        tool.invoke(tool_call["args"]), 
+        tool_call_id=tool_call["id"]
+        )
+
+tool_executor = RunnableLambda(_invoke_tool)
+
+
+def call_tools(state):
+    """Execute batch tool calls and avoid duplicate ToolMessage entries."""
+    last_message = state["messages"][index]
+    tool_messages = tool_executor.batch(last_message.tool_calls)
+
+    # Filter out duplicate ToolMessage entries
+    new_messages = []
+    for tool_msg in tool_messages:
+        if all(
+            not hasattr(msg, "tool_call_id") or tool_msg.tool_call_id != msg.tool_call_id
+            for msg in state["messages"]
+        ):
+            new_messages.append(tool_msg)
+    
+    # Append only unique tool messages to prevent duplicates
+    return {"messages": state["messages"] + new_messages}
 
 # Define the function that determines whether to continue or not
-def should_continue(state: MessagesState) -> Literal["tools", END]:
-    
-    messages = state['messages']
-    last_message = messages[-1]
+def should_continue(state: AgentState) -> Literal["continue", "end"]: 
 
-    # If the LLM makes a tool call, then we route to the "tools" node
-    if last_message.tool_calls:
-        return "tools"
-    # Otherwise, we stop (reply to the user)
-    return END
+    messages = state['messages']
+    if messages[index].tool_calls and messages[index].tool_calls[0]['name'] == 'FinalResponse':
+        return "end"
+
+    return "continue"
+             
 
 # Define the function that calls the model
-def call_model(state: MessagesState, config: RunnableConfig) -> list[BaseMessage]:
-    # Make sure that config is populated with the session id
-    if "configurable" not in config or "session_id" not in config["configurable"]:
-        raise ValueError(
-            "Make sure that the config includes the following information: {'configurable': {'session_id': 'some_value'}}"
+async def call_model(state: AgentState) -> dict:
+    """This function should handle the model invocation and tool response."""
+    messages = state["messages"]
+
+    ai_msg = await model.ainvoke(messages)
+    # Check for a tool call request
+    if ai_msg.tool_calls:
+        # Only add ToolMessage after tool invocation
+        tool_call = ai_msg.tool_calls[0]
+
+        tool_msg = ToolMessage(
+            content=tool_call['args'],
+            tool_call_id=tool_call['id']
         )
-    # Get the chat history for the session
-    chat_history = get_chat_history(config.get("configurable").get("session_id"))
-    #print("1. ", chat_history.messages)
-    if len(chat_history.messages) == 0:
-        chat_history.add_message(SystemMessage(content=SYSTEM_MESSAGE_PROMPT))
-    
-    messages = list(chat_history.messages) + state['messages']
-
-    response = model.invoke(messages)
-
-    chat_history.add_messages(state["messages"] + [response])
-    
-    return {"messages": response}
-
-def call_summary_model(state: MessagesState, config: RunnableConfig) -> list[BaseMessage]:
-    """This model do not need to invoke it with the chat_history, because it is a summarization model
-    But we need to add the last message to the chat_history
-    """
-    # Make sure that config is populated with the session id
-    if "configurable" not in config or "session_id" not in config["configurable"]:
-        raise ValueError(
-            "Make sure that the config includes the following information: {'configurable': {'session_id': 'some_value'}}"
-        )
-    
-    # Get the chat history for the session
-    chat_history = get_chat_history(config.get("configurable").get("session_id"))
-    #print(chat_history.messages)
-
-    messages = state['messages']
-
-    last_message = messages[-1]
-
-    response = model.invoke([
-        HumanMessage(content=SUMMARY_LLM_PROMPT.format(context=last_message.content))
-        ])
-    
-    chat_history.add_messages([response])
-
-    return {"messages": response}
+        # Update state messages with tool message
+        return {
+            "count": state["count"] + 1,
+            "messages": messages + [ai_msg, tool_msg]
+        }
+    # Return assistant's message if no tool call
+    return {
+        "count": state["count"] + 1,
+        "messages": messages + [ai_msg]
+    }
 
 
-# # Define the function that calls the model
-# def call_model(state: dict) -> str:
-#     # Get the chat history for the session
-#     chat_history = get_chat_history(config.get("configurable").get("session_id"))
-    
-#     messages = state['messages']
-    
-#     last_message = messages[-1]
-#     prompt_input_messages = [
-#         SystemMessage(content=SYSTEM_MESSAGE_PROMPT),
-#         HumanMessage(content=last_message.content),
-#     ]
-#     response = model.invoke(prompt_input_messages)
-#     return {
-#         "messages": [response] # We return a list, because this will get added to the existing list
-#             }
+def respond(state: AgentState) -> dict:
+    """Handles the tool response."""
+    try:
+        # Access tool args safely
+        tool_response = state["messages"][index].tool_calls[0].get("args", {})
+        if isinstance(tool_response, str):
+            tool_response = json.loads(tool_response)  # Convert string to dict if necessary
+        response = FinalResponse(**tool_response)
 
-# def call_summary_model(state: dict) -> str:
-    
-#     messages = state['messages']
-    
-#     last_message = messages[-1]
-    
-#     prompt_input_messages = [
-#         #SystemMessage(content=SYSTEM_MESSAGE_PROMPT),
-#         HumanMessage(content=SUMMARY_LLM_PROMPT.format(context=last_message.content)),
-#     ]
-#     response = model.invoke(prompt_input_messages)
-#     return {
-#         "messages": [response] # We return a list, because this will get added to the existing list
-#             }
+        response_message = AIMessage(content=str(response))
+        return {
+            "count": state["count"] + 1,
+            "messages": state["messages"] + [response_message]
+        }
+    except Exception as e:
+        print(f"Error in respond: {e}")
+        return {"error": str(e)}

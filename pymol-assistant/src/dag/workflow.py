@@ -1,45 +1,54 @@
 import os
-import uuid
 
-from src.dag.tools import tool_node
-from src.dag.nodes import call_model, should_continue, call_summary_model
+from src.dag.tools import *
+from src.dag.nodes import *
 
-from langgraph.graph import MessagesState, START, StateGraph, END
+from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
 
+
+
+########## Graph ##########
 # Define a new graph
 workflow = StateGraph(
     # Define the initial state of the graph
-    state_schema=MessagesState
-)
+    state_schema=AgentState
+    )
+
+workflow = StateGraph(AgentState)
 
 # Define the two nodes we will cycle between
 workflow.add_node("agent", call_model)
-workflow.add_node("summary_agent", call_summary_model)
-workflow.add_node("tools", tool_node)
+workflow.add_node("respond", respond)
+workflow.add_node("tools", call_tools)
 
-# Set the entrypoint as `agent`
-# This means that this node is the first one called
-workflow.add_edge(START, "agent")
-
-# Add a conditional edge from `agent` to `tools`
+# __start__
+workflow.set_entry_point("agent")
+# conditional nodes
 workflow.add_conditional_edges(
-    "agent", 
-    should_continue, 
-    ["tools", END]
-    )
+    "agent",
+    should_continue,
+    {
+        "continue": "tools",        # If the condition is met, go to the "tools" node
+        "end": "respond",
+    }
+)
 
-# We now add a normal edge from `tools` to `summary_agent`.
-# This means that after `tools` is called, `summary_agent` node is called next.
-workflow.add_edge("tools", 'summary_agent')
-workflow.add_edge("summary_agent", END)
+workflow.add_edge("tools", "agent")
+workflow.add_edge("respond", END)
+
 
 # Initialize memory to persist state between graph runs
 checkpointer = MemorySaver()
+# ERROR: https://github.com/langchain-ai/langgraph/discussions/544
 
+
+########## Compile and Save Graph ##########
 # Note that we're (optionally) passing the memory when compiling the graph
-graph = workflow.compile(checkpointer=checkpointer)
+graph = workflow.compile(
+    checkpointer=checkpointer
+    )
 
 try:
     # Retrieve the PNG data of the graph
@@ -52,3 +61,5 @@ try:
     print(f"Graph saved as '{path}'")
 except Exception as e:
     print(e)
+
+# Agents with Structured Output: https://www.youtube.com/watch?v=0i9NzY_b3pg
