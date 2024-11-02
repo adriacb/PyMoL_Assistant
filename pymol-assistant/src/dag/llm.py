@@ -15,7 +15,7 @@ from src.dag.tools import tools
 
 model = ChatAnthropic(
     model="claude-3-sonnet-20240229",
-    temperature=0.1,
+    temperature=0.5,
               ).bind_tools(
     tools=tools,
     tool_choice='any'

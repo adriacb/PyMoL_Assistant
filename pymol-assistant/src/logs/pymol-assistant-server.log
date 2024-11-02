@@ -508,3 +508,13 @@
 2024-11-02 12:43:53,253 - INFO - Received question: color by chain
 2024-11-02 12:45:23,227 - INFO - Received question: how are you?
 2024-11-02 12:45:30,753 - INFO - Received question: color by chain
+2024-11-02 12:58:11,216 - INFO - Received question: hello world
+2024-11-02 13:01:10,291 - INFO - Received question: hello world
+2024-11-02 13:02:11,928 - INFO - Received question: hello world
+2024-11-02 13:02:32,945 - INFO - Received question: color by chain
+2024-11-02 13:10:14,194 - INFO - Question: "fetch the 6axg protein", current loaded objects : 
+2024-11-02 13:13:07,517 - INFO - Question: "fetch the 6axg protein", current loaded objects : 
+2024-11-02 13:15:55,402 - INFO - Question: "fetch the 6axg protein", current loaded objects : 
+2024-11-02 13:16:30,075 - INFO - Question: "fetch the 6axg protein", current loaded objects : 
+2024-11-02 13:19:36,664 - INFO - Question: "fetch the 6axg protein", current loaded objects : 
+2024-11-02 13:21:33,969 - INFO - Question: "fetch 6axg protein", current loaded objects : 

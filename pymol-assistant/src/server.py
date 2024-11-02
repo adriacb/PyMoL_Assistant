@@ -44,13 +44,13 @@ async def submit_question(question: QuestionModel, session_id: str = session_id)
         raise ValueError(
             "Make sure that the config includes the following information: {'configurable': {'thread_id': 'some_value'}}"
         )
-
-    logger.info(f"Received question: {question.question}")
-
+    message = f"Question: {question.question}, current loaded objects : {question.current_slection}"
+    logger.info(message)
+    
     # the input to the graph is the chat history and the new question
     input = {
         "count": 0,
-        "messages": [HumanMessage(content=question.question)]
+        "messages": [HumanMessage(content=message)]
         }
 
     # Required for the graph to run with the memory saver
@@ -59,16 +59,21 @@ async def submit_question(question: QuestionModel, session_id: str = session_id)
         config=config,
         debug=True
         )
-    
-    # Whether it comes directly form the Agent:
-    if output["messages"][-1].content:
-        return {"final_response": output["messages"][-1].content}
-    else:
 
-        return {
-            "final_response": 
-            output["messages"][-1].additional_kwargs["tool_calls"][0]["function"]["arguments"]
-                }
+    content = output["messages"][-2].content[0]['input']
+    print(content)
+    return {"final_response": content}
+
+    # For OpenAI
+    # # Whether it comes directly form the Agent:
+    # if output["messages"][-2].content:
+    #     return {"final_response": output["messages"][-2].content}
+    # else:
+
+    #     return {
+    #         "final_response": 
+    #         output["messages"][-2].additional_kwargs["tool_calls"][0]["function"]["arguments"]
+    #             }
 
 
 @app.get("/graph")

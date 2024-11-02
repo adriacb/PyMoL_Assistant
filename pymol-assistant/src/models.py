@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 class QuestionModel(BaseModel):
     question: str
+    current_slection: str
 
 class FinalResponse(BaseModel):
     """Final response to the user."""

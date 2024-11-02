@@ -6,10 +6,8 @@ from src.dag.states import *
 from src.dag.llm import model
 
 from typing import Literal
-from langchain_core.messages import (
-    AIMessage, 
-    ToolMessage,
-)
+from langchain_core.messages import ToolMessage
+
 from langchain_core.runnables import RunnableLambda
 
 map_str_to_tool = {
@@ -55,9 +53,8 @@ def should_continue(state) -> Literal["continue", "end"]:
            
 async def call_model(state) -> dict:
     messages = state["messages"]
-
-    # Log the messages for debugging
-    print("Messages being sent to the model:", messages)
+    # # Log the messages for debugging
+    # print("Messages being sent to the model:", messages)
 
     # Call the model with the structured messages
     ai_msg = await model.ainvoke(messages)
