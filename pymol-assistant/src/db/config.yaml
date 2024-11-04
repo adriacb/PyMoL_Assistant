@@ -1,6 +1,6 @@
 qdrant:
   collection_name: pymol-assistant
-  url: https://f01bac7d-144a-44f8-b643-17d9c6db29f0.us-east4-0.gcp.cloud.qdrant.io:6333
+  url: enter_url
   vector_config:
     size: 768
     distance: cosine
