@@ -31,13 +31,11 @@ async def submit_question(question: QuestionModel, session_id: str = session_id)
     Returns:
         json: The response to the question.
     """
-
-    # Create a new session id if not provided
     config = RunnableConfig(configurable={
         "thread_id": "Thread-1",
         "session_id": session_id,
         "recursion_limit": 10,
-        "llm": "gpt-4o-mini"
+        #"llm": "gpt-4o-mini"
         })
     
     if "configurable" not in config or "thread_id" not in config["configurable"]:
@@ -61,7 +59,7 @@ async def submit_question(question: QuestionModel, session_id: str = session_id)
         )
 
     content = output["messages"][-2].content[0]['input']
-    print(content)
+    
     return {"final_response": content}
 
     # For OpenAI

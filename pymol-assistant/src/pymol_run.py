@@ -64,11 +64,11 @@ def question(input: str):
 
             # Parse the response
             response = response.json()["final_response"]
-            
+            #print(response)
             if response:
                 #logger2.info(f"Response: {response['usage']}, type: {type(response['usage'])}")
-                print(response['answer'])
-                print(response['references'])                
+                print("PyMOL_Assistant>",response['answer'])
+                print("PyMOL_Assistant>",response['references'])                
                 try:
                     eval(response['usage'])
                 except Exception as e:
@@ -76,7 +76,7 @@ def question(input: str):
         else:
             print(f"Failed to send question. Status code: {response.status_code}")
     except Exception as e:
-        print.critical(f"Error occurred: {e}")
+        print(f"Error occurred: {e}")
     
     return {"question": input}
 

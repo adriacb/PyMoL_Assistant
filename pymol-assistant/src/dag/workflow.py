@@ -6,9 +6,6 @@ from src.dag.nodes import *
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
-
-
-
 ########## Graph ##########
 # Define a new graph
 workflow = StateGraph(
@@ -41,8 +38,6 @@ workflow.add_edge("respond", END)
 
 # Initialize memory to persist state between graph runs
 checkpointer = MemorySaver()
-# ERROR: https://github.com/langchain-ai/langgraph/discussions/544
-
 
 ########## Compile and Save Graph ##########
 # Note that we're (optionally) passing the memory when compiling the graph
