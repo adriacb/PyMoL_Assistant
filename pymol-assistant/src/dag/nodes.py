@@ -12,7 +12,6 @@ from langchain_core.runnables import RunnableLambda
 
 map_str_to_tool = {
     "rag_search_pymol_docs": rag_search_pymol_docs,
-    "FinalResponse": FinalResponse
 }
 
 def _invoke_tool(tool_call):
