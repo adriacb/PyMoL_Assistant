@@ -58,8 +58,8 @@ def load_vector_store(config:dict, embeddings:Any) -> Qdrant:
     try:
         QDRANT_URL = config.get('qdrant').get('url')
         QDRANT_COLLECTION_NAME = config.get('qdrant').get('collection_name')
-        print("QDRANT_URL: ", QDRANT_URL)
-        print("QDRANT_COLLECTION_NAME: ", QDRANT_COLLECTION_NAME)
+        #print("QDRANT_URL: ", QDRANT_URL)
+        #print("QDRANT_COLLECTION_NAME: ", QDRANT_COLLECTION_NAME)
         
         # Qdrant instance
         qdrant = Qdrant.from_existing_collection(
