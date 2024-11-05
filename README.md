@@ -19,7 +19,7 @@ PyMOL Assistant is a Python application designed to simplify interactions with P
 1. Clone this repository:
 ```bash
 git clone https://github.com/adriacb/PyMoL_Assistant.git
-cd PyMoL_Assistant/pymol-assistant
+cd PyMoL_Assistant/
 ```
 2. Create conda environment & install PyMoL
 ```bash
@@ -38,13 +38,13 @@ For detailed usage instructions, please refer to the [detailed usage guide](pymo
 ### Project Structure
 ```
 pymol-assistant
-├── dist                   # Distribution files
+|── main files
 ├── prep                   # Preparation scripts
-├── src                    # Main application code
-├── tests                  # Unit and integration tests
 ├── poetry.lock            # Dependency lock file
 ├── pyproject.toml         # Project configuration
 └── README.md              # Project documentation
+tests                      # Unit and integration tests
+dist                       # Distribution files
 ``` 
 
 ### License
