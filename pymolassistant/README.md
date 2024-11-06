@@ -32,7 +32,7 @@ Replace enter_url_here with your actual Qdrant URL.
 ### Step 3: Set Up API Keys
 In the src directory, create a .env file to store your API keys for Qdrant, OpenAI, and Anthropic. This file will provide the required authentication keys for the assistant to function correctly.
 
-Create src/.env and add:
+Create `pymolassistant/.env` and add:
 
 ```
 QDRANT_API_KEY=
