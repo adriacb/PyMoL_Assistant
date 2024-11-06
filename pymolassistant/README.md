@@ -19,9 +19,9 @@ conda activate my_env
 ```
 
 ### Step 2: Configure the Vector Store URL
-Before starting the server, configure the vector store URL by editing the src/db/config.yaml file to point to your PyMOL documentation vector store.
+Before starting the server, configure the vector store URL by editing the `pymolassistant/db/config.yaml` file to point to your PyMOL documentation vector store.
 
-In src/db/config.yaml, add:
+In `pymolassistant/db/config.yaml`, add:
 ```
 qdrant:
   collection_name: pymol-assistant
